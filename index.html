@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tamancão | Psicologia Escolar</title>
+    <!-- Favicon com a imagem institucional do IEMA Tamancão -->
+    <link rel="icon" type="image/jpeg" href="imagenns/tamancão.jpeg">
+    <!-- Google Fonts Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            --bg-main: #F4F7FE;
+            --bg-card: #FFFFFF;
+            --text-primary: #1B2559;
+            --text-secondary: #707EAE;
+            --primary: #2B3674;
+            --primary-hover: #1E2552;
+            --primary-light: #E0EFFF;
+            --accent-blue: #4318FF;
+            --accent-blue-light: #EEF2FF;
+            --danger: #EE5D50;
+            --danger-light: #FFE5E3;
+            --border-color: #E0ECFE;
+            --input-bg: #F8FAFC;
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --max-width: 900px;
+            --shadow-sm: 0px 18px 40px rgba(112, 126, 174, 0.08);
+            --shadow-md: 0px 20px 50px rgba(112, 126, 174, 0.12);
+            --transition: all 0.2s ease-in-out;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* HEADER MODERNO MOBILE FIRST */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.85rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .header-logo {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #fff;
+            padding: 2px;
+            border: 1px solid var(--border-color);
+        }
+
+        .header-brand div h1 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+        }
+
+        .header-brand div span {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        nav {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        nav button {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.8rem;
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        nav button:hover, nav button.active {
+            color: var(--accent-blue);
+            background-color: var(--accent-blue-light);
+        }
+
+        .btn-login-nav {
+            background-color: var(--accent-blue-light) !important;
+            color: var(--accent-blue) !important;
+            font-weight: 700 !important;
+        }
+
+        /* SISTEMA DE NOTIFICAÇÕES (SINO) */
+        .notification-wrapper {
+            position: relative;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border-color);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .notification-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background-color: var(--danger);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(238, 93, 80, 0.4);
+            display: none;
+        }
+
+        /* DROPDOWN DE NOTIFICAÇÕES */
+        .notification-dropdown {
+            position: absolute;
+            right: 0;
+            top: 48px;
+            width: 300px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            display: none;
+            flex-direction: column;
+            z-index: 110;
+            overflow: hidden;
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+
+        .notification-dropdown.show {
+            display: flex;
+        }
+
+        .notif-header {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--input-bg);
+        }
+
+        .notif-header span {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .notif-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .notif-item {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .notif-item:hover {
+            background-color: var(--input-bg);
+        }
+
+        .notif-item.unread {
+            background-color: var(--accent-blue-light);
+        }
+
+        .notif-item p {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .notif-item span {
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+        }
+
+        /* ESTILO DO ÍCONE DE PERFIL NO HEADER */
+        .profile-icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-blue-light);
+            color: var(--accent-blue);
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: 1.5px solid rgba(67, 24, 255, 0.2);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .profile-icon-btn:hover {
+            transform: scale(1.05);
+        }
+
+        main {
+            max-width: var(--max-width);
+            width: 100%;
+            margin: 0 auto;
+            padding: 1rem;
+            flex: 1;
+        }
+
+        .page-section {
+            display: none;
+            animation: fadeIn 0.25s ease-out forwards;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* HERO SECTION */
+        .hero-section {
+            background: linear-gradient(135deg, #4318FF 0%, #6AD2FF 100%);
+            border-radius: var(--radius-md);
+            padding: 1.5rem 1.25rem;
+            margin-bottom: 1.25rem;
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .hero-section h2 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin-bottom: 0.35rem;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .hero-section p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* POSTS / MURAL */
+        #posts-container {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .post-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .post-card h3 {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .post-date {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.85rem;
+            font-weight: 500;
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 280px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.85rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .post-card p {
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .post-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: white;
+            background: var(--accent-blue);
+            padding: 8px 14px;
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.8rem;
+            word-break: break-all;
+            transition: var(--transition);
+        }
+
+        .post-link:hover {
+            opacity: 0.9;
+        }
+
+        /* CARDS / FORMULÁRIOS / PAINÉIS */
+        .form-container, #login-section, #admin-panel, #aluno-panel {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+            color: var(--text-primary);
+            font-size: 0.8rem;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="url"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+            transition: var(--transition);
+            -webkit-appearance: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
+        }
+
+        /* BOTÕES PADRÃO */
+        button.btn-main {
+            width: 100%;
+            padding: 13px;
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0px 8px 20px rgba(67, 24, 255, 0.2);
+            text-align: center;
+        }
+
+        button.btn-main:active {
+            transform: scale(0.98);
+        }
+
+        button.btn-secondary-action {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            box-shadow: none;
+        }
+
+        /* BADGES DE SEGURANÇA NO ATENDIMENTO */
+        .info-security-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .security-badge {
+            background: var(--accent-blue-light);
+            border: 1px solid rgba(67, 24, 255, 0.1);
+            padding: 0.75rem;
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+
+        .security-badge span {
+            display: block;
+            font-weight: 700;
+            color: var(--accent-blue);
+            font-size: 0.75rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .security-badge p {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* TABELAS MOBILE OTIMIZADAS */
+        .admin-table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: #fff;
+        }
+
+        table.admin-table {
+            width: 100%;
+            min-width: 500px;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.8rem;
+        }
+
+        table.admin-table th, table.admin-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        table.admin-table th {
+            background-color: var(--input-bg);
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-action {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.7rem;
+            margin-right: 4px;
+            transition: var(--transition);
+        }
+
+        .btn-edit { background-color: var(--primary-light); color: var(--primary); }
+        .btn-delete { background-color: var(--danger-light); color: var(--danger); }
+        
+        .badge-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .status-Pendente { background: #FFF4DE; color: #FFA800; }
+        .status-Aceite { background: var(--primary-light); color: var(--accent-blue); }
+        .status-Concluído { background: #D1FADF; color: #039855; }
+        .status-Cancelado { background: var(--danger-light); color: var(--danger); }
+
+        .state-container {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .panel-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .sub-box {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            padding: 1rem 0.85rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 1.25rem;
+        }
+
+        /* MEDIA QUERIES PARA DESKTOP */
+        @media (min-width: 640px) {
+            header { padding: 1rem 2rem; }
+            main { padding: 1.5rem; }
+            .hero-section { padding: 2.25rem 2rem; }
+            .hero-section h2 { font-size: 1.75rem; }
+            .form-container, #login-section, #admin-panel, #aluno-panel { padding: 2rem; }
+            .info-security-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-brand" onclick="mudarSecao('mural')">
+            <img src="imagenns/tamancão.jpeg" alt="Logo Tamancão" class="header-logo">
+            <div>
+                <h1>Tamancão</h1>
+                <span>Psicologia Escolar</span>
+            </div>
+        </div>
+        <nav>
+            <button id="nav-mural" class="active" onclick="mudarSecao('mural')">Mural</button>
+            <button id="nav-agendar" onclick="mudarSecao('agendar')">Atendimento</button>
+            
+            <!-- SINO DE NOTIFICAÇÕES -->
+            <div class="notification-wrapper" id="notification-wrapper" style="display: none;">
+                <button class="notification-btn" onclick="toggleDropdownNotif(event)" title="Notificações">
+                    🔔
+                    <span id="notif-badge" class="notification-badge">0</span>
+                </button>
+                <div id="notification-dropdown" class="notification-dropdown">
+                    <div class="notif-header">
+                        <span>Notificações</span>
+                        <button onclick="marcarNotificacoesLidas()" style="background:none; border:none; color:var(--accent-blue); font-size:0.65rem; font-weight:700; cursor:pointer;">Marcar lidas</button>
+                    </div>
+                    <div id="notif-list" class="notif-list">
+                        <div style="padding: 12px; text-align: center; color: var(--text-secondary); font-size: 0.75rem;">Sem notificações</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="nav-auth-container">
+                <button id="nav-admin" class="btn-login-nav" onclick="mudarSecao('admin')">🔒 Entrar</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- SECÇÃO 1: MURAL -->
+        <section id="sec-mural" class="page-section active">
+            <div class="hero-section">
+                <h2>Espaço de apoio e bem-estar</h2>
+                <p>Acompanhe avisos importantes, orientações e conteúdos preparados especialmente para promover um ambiente escolar seguro, saudável e acolhedor.</p>
+            </div>
+            <div id="posts-container">
+                <div class="state-container">
+                    <p>A carregar publicações...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECÇÃO 2: AGENDAR ATENDIMENTO -->
+        <section id="sec-agendar" class="page-section">
+            <div class="form-container">
+                <div style="text-align: center; margin-bottom: 1.25rem;">
+                    <h2 style="color: var(--primary); font-size: 1.35rem; font-weight: 800; margin-bottom: 0.25rem;">Solicitação de Atendimento</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Um espaço seguro, confidencial e acolhedor para conversar.</p>
+                </div>
+
+                <div class="info-security-grid">
+                    <div class="security-badge">
+                        <span>Confidencial</span>
+                        <p>Sigilo garantido.</p>
+                    </div>
+                    <div class="security-badge">
+                        <span>Seguro</span>
+                        <p>Sem julgamentos.</p>
+                    </div>
+                    <div class="security-badge">
+                        <span>Privado</span>
+                        <p>Acolhimento direto.</p>
+                    </div>
+                </div>
+
+                <form id="form-agendar" onsubmit="enviarAgendamento(event)">
+                    <div class="form-group">
+                        <label for="nome">Nome Completo do Aluno:</label>
+                        <input type="text" id="nome" required placeholder="Digite o seu nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="turma">Turma:</label>
+                        <select id="turma" required>
+                            <option value="" disabled selected>Selecione a sua turma</option>
+                            <option value="100">100</option>
+                            <option value="101">101</option>
+                            <option value="201">201</option>
+                            <option value="202">202</option>
+                            <option value="301">301</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="assunto">Assunto Principal:</label>
+                        <select id="assunto" required>
+                            <option value="" disabled selected>Selecione o motivo principal</option>
+                            <option value="Ansiedade / Estresse">Ansiedade ou Estresse Académico</option>
+                            <option value="Dificuldades de Concentração">Dificuldades de Concentração / Estudos</option>
+                            <option value="Relações Interpessoais">Relações Interpessoais / Convivência</option>
+                            <option value="Orientação Pessoal">Orientação Pessoal ou Emocional</option>
+                            <option value="Outro">Outro Assunto</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="data-pref">Data de Preferência:</label>
+                        <input type="date" id="data-pref" required>
+                    </div>
+                    <button type="submit" class="btn-main">Enviar Solicitação</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECÇÃO 3: LOGIN / PAINÉIS -->
+        <section id="sec-admin" class="page-section">
+            <!-- TELA DE LOGIN UNIFICADA -->
+            <div id="login-section">
+                <div style="text-align: center; margin-bottom: 1.25rem;">
+                    <h2 style="color: var(--primary); font-size: 1.35rem; font-weight: 800; margin-bottom: 0.25rem;">Entrar na Plataforma</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Insira as suas credenciais de Administrador ou Aluno.</p>
+                </div>
+                <div class="form-group">
+                    <label for="admin-user">Utilizador:</label>
+                    <input type="text" id="admin-user" placeholder="Seu nome de utilizador">
+                </div>
+                <div class="form-group">
+                    <label for="admin-pass">Palavra-passe:</label>
+                    <input type="password" id="admin-pass" placeholder="Sua palavra-passe">
+                </div>
+                <button id="btn-login" class="btn-main" onclick="fazerLogin()">Entrar na Conta</button>
+            </div>
+
+            <!-- PAINEL DO ALUNO -->
+            <div id="aluno-panel" style="display: none;">
+                <div class="panel-header">
+                    <div>
+                        <h2 style="color: var(--primary); font-size: 1.25rem; font-weight: 800;" id="aluno-welcome-title">Área do Aluno</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.8rem;">Acompanhe os seus pedidos de atendimento.</p>
+                    </div>
+                    <button onclick="fazerLogout()" class="btn-action btn-delete" style="padding: 8px; font-weight: 700; width: 100%;">Terminar Sessão</button>
+                </div>
+
+                <div class="sub-box">
+                    <h3 style="color: var(--primary); font-size: 1rem; margin-bottom: 0.5rem; font-weight: 700;">Os Meus Pedidos</h3>
+                    <div class="admin-table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Assunto</th>
+                                    <th>Data</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-meus-agendamentos-body">
+                                <tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">A carregar...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button onclick="mudarSecao('agendar')" class="btn-main">Solicitar Novo Atendimento</button>
+                    <button onclick="mudarSecao('mural')" class="btn-main btn-secondary-action">Ver Mural de Avisos</button>
+                </div>
+            </div>
+
+            <!-- PAINEL DE GESTÃO COMPLETO DO ADMIN -->
+            <div id="admin-panel" style="display: none;">
+                <div class="panel-header">
+                    <div>
+                        <h2 style="color: var(--primary); font-size: 1.25rem; font-weight: 800;">Painel de Administração</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.8rem;">Gestão de agendamentos, alunos e mural.</p>
+                    </div>
+                    <button onclick="fazerLogout()" class="btn-action btn-delete" style="padding: 8px; font-weight: 700; width: 100%;">Terminar Sessão</button>
+                </div>
+
+                <!-- 1. GESTÃO DE AGENDAMENTOS -->
+                <div class="sub-box">
+                    <h3 style="color: var(--primary); font-size: 1rem; margin-bottom: 0.5rem; font-weight: 700;">Solicitações de Atendimento</h3>
+                    <div class="admin-table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Aluno</th>
+                                    <th>Turma</th>
+                                    <th>Assunto</th>
+                                    <th>Data</th>
+                                    <th>Estado</th>
+                                    <th style="text-align: right;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-agendamentos-body">
+                                <tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">A carregar...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. GESTÃO DE ALUNOS -->
+                <div class="sub-box">
+                    <h3 id="form-aluno-titulo" style="color: var(--primary); font-size: 1rem; margin-bottom: 0.5rem; font-weight: 700;">Registar Novo Aluno</h3>
+                    <form id="form-aluno" onsubmit="salvarAluno(event)">
+                        <input type="hidden" id="aluno-id">
+                        <div class="form-group">
+                            <label for="aluno-nome">Nome Completo:</label>
+                            <input type="text" id="aluno-nome" required placeholder="Nome do aluno">
+                        </div>
+                        <div class="form-group">
+                            <label for="aluno-user">Nome de Utilizador:</label>
+                            <input type="text" id="aluno-user" required placeholder="ex: lucas.silva">
+                        </div>
+                        <div class="form-group">
+                            <label for="aluno-pass">Palavra-passe:</label>
+                            <input type="password" id="aluno-pass" required placeholder="Palavra-passe">
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="submit" id="btn-salvar-aluno" class="btn-main" style="flex: 1;">Salvar Aluno</button>
+                            <button type="button" id="btn-cancelar-edicao" onclick="cancelarEdicaoAluno()" style="display:none; padding: 0 12px; background: #E2E8F0; color: #334155; border: none; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem;">Cancelar</button>
+                        </div>
+                    </form>
+
+                    <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                        <h4 style="color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 700;">Alunos Registados</h4>
+                        <div class="admin-table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Utilizador</th>
+                                        <th style="text-align: right;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-alunos-body">
+                                    <tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">A carregar...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 3. GESTÃO DO MURAL -->
+                <div class="sub-box" style="margin-bottom: 0;">
+                    <h3 id="form-post-titulo" style="color: var(--primary); font-size: 1rem; margin-bottom: 0.5rem; font-weight: 700;">Criar Nova Publicação</h3>
+                    <form id="form-post" onsubmit="salvarPost(event)">
+                        <input type="hidden" id="post-id">
+                        <div class="form-group">
+                            <label for="titulo">Título da Publicação:</label>
+                            <input type="text" id="titulo" required placeholder="Ex: Orientações para a semana">
+                        </div>
+                        <div class="form-group">
+                            <label for="conteudo">Conteúdo / Mensagem:</label>
+                            <textarea id="conteudo" rows="4" required placeholder="Escreva detalhadamente o conteúdo..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="link">Link Externo (Opcional):</label>
+                            <input type="url" id="link" placeholder="https://exemplo.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="imagem">Imagem Ilustrativa (Opcional):</label>
+                            <input type="file" id="imagem" accept="image/*" style="border: 1.5px dashed var(--border-color); background: #fff; padding: 10px; font-size: 0.8rem;">
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="submit" id="btn-enviar-post" class="btn-main" style="flex: 1;">Publicar Agora</button>
+                            <button type="button" id="btn-cancelar-post" onclick="cancelarEdicaoPost()" style="display:none; padding: 0 12px; background: #E2E8F0; color: #334155; border: none; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem;">Cancelar</button>
+                        </div>
+                    </form>
+
+                    <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                        <h4 style="color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 700;">Publicações Existentes</h4>
+                        <div class="admin-table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Título</th>
+                                        <th>Data</th>
+                                        <th style="text-align: right;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-posts-body">
+                                    <tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">A carregar...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        var supabaseUrl = 'https://bjotowzmziqxsuheacdt.supabase.co';
+        var supabaseKey = 'sb_publishable_zCDVTrPkUuNC1l5ZLqzvAQ_q6m-QQ17';
+        var supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let alunoLogadoAtual = JSON.parse(localStorage.getItem('tamancao_aluno')) || null;
+        let isAdminLogado = JSON.parse(localStorage.getItem('tamancao_admin')) || false;
+
+        function mudarSecao(secao) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(el => {
+                if(!el.classList.contains('profile-icon-btn') && !el.classList.contains('notification-btn')) el.classList.remove('active');
+            });
+
+            if (secao === 'mural') {
+                document.getElementById('sec-mural').classList.add('active');
+                document.getElementById('nav-mural').classList.add('active');
+                loadPosts();
+            } else if (secao === 'agendar') {
+                document.getElementById('sec-agendar').classList.add('active');
+                document.getElementById('nav-agendar').classList.add('active');
+                if (alunoLogadoAtual) {
+                    const inputNome = document.getElementById('nome');
+                    if (inputNome && !inputNome.value) inputNome.value = alunoLogadoAtual.nome;
+                }
+            } else if (secao === 'admin') {
+                document.getElementById('sec-admin').classList.add('active');
+                const btnAdmin = document.getElementById('nav-admin');
+                if(btnAdmin) btnAdmin.classList.add('active');
+                
+                if (isAdminLogado) {
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('aluno-panel').style.display = 'none';
+                    document.getElementById('admin-panel').style.display = 'block';
+                    carregarAlunos();
+                    carregarAgendamentosAdmin();
+                    carregarPostsAdmin();
+                } else if (alunoLogadoAtual) {
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('admin-panel').style.display = 'none';
+                    document.getElementById('aluno-panel').style.display = 'block';
+                    document.getElementById('aluno-welcome-title').textContent = `Olá, ${alunoLogadoAtual.nome}`;
+                    carregarMeusAgendamentos(alunoLogadoAtual.nome, alunoLogadoAtual.username);
+                }
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function atualizarHeaderLogado(nomeUsuario) {
+            const container = document.getElementById('nav-auth-container');
+            const iniciais = nomeUsuario ? nomeUsuario.substring(0, 2).toUpperCase() : 'US';
+            container.innerHTML = `
+                <button class="profile-icon-btn" onclick="mudarSecao('admin')" title="Painel de Utilizador">${iniciais}</button>
+            `;
+            document.getElementById('notification-wrapper').style.display = 'block';
+            carregarNotificacoes();
+        }
+
+        function restaurarHeaderLogin() {
+            const container = document.getElementById('nav-auth-container');
+            container.innerHTML = `
+                <button id="nav-admin" class="btn-login-nav" onclick="mudarSecao('admin')">🔒 Entrar</button>
+            `;
+            document.getElementById('notification-wrapper').style.display = 'none';
+        }
+
+        // SISTEMA DE NOTIFICAÇÕES
+        function toggleDropdownNotif(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('notification-dropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        window.addEventListener('click', () => {
+            const dropdown = document.getElementById('notification-dropdown');
+            if (dropdown && dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        async function criarNotificacao(destinatarioUsername, titulo, mensagem) {
+            try {
+                await supabase.from('notificacoes').insert([{
+                    username: destinatarioUsername,
+                    titulo: titulo,
+                    mensagem: mensagem,
+                    lida: false,
+                    data: new Date().toISOString()
+                }]);
+            } catch (err) {
+                console.error("Erro ao criar notificação:", err);
+            }
+        }
+
+        async function carregarNotificacoes() {
+            let userTarget = isAdminLogado ? 'admin' : (alunoLogadoAtual ? alunoLogadoAtual.username : null);
+            if (!userTarget) return;
+
+            try {
+                const { data: notificacoes, error } = await supabase
+                    .from('notificacoes')
+                    .select('*')
+                    .eq('username', userTarget)
+                    .order('id', { ascending: false })
+                    .limit(10);
+
+                if (error) return;
+
+                const listEl = document.getElementById('notif-list');
+                const badgeEl = document.getElementById('notif-badge');
+
+                if (!notificacoes || notificacoes.length === 0) {
+                    listEl.innerHTML = `<div style="padding: 12px; text-align: center; color: var(--text-secondary); font-size: 0.75rem;">Sem notificações</div>`;
+                    badgeEl.style.display = 'none';
+                    return;
+                }
+
+                let naoLidas = notificacoes.filter(n => !n.lida).length;
+                if (naoLidas > 0) {
+                    badgeEl.textContent = naoLidas;
+                    badgeEl.style.display = 'block';
+                } else {
+                    badgeEl.style.display = 'none';
+                }
+
+                listEl.innerHTML = '';
+                notificacoes.forEach(n => {
+                    const item = document.createElement('div');
+                    item.className = `notif-item ${n.lida ? '' : 'unread'}`;
+                    item.innerHTML = `
+                        <p>${n.titulo}</p>
+                        <span style="display:block; margin-bottom:2px;">${n.mensagem}</span>
+                        <span>${new Date(n.data).toLocaleDateString('pt-PT')}</span>
+                    `;
+                    listEl.appendChild(item);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function marcarNotificacoesLidas() {
+            let userTarget = isAdminLogado ? 'admin' : (alunoLogadoAtual ? alunoLogadoAtual.username : null);
+            if (!userTarget) return;
+
+            try {
+                await supabase
+                    .from('notificacoes')
+                    .update({ lida: true })
+                    .eq('username', userTarget)
+                    .eq('lida', false);
+
+                carregarNotificacoes();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        window.fazerLogin = async function() {
+            const user = document.getElementById('admin-user').value.trim();
+            const pass = document.getElementById('admin-pass').value.trim();
+
+            if (!user || !pass) {
+                alert('Por favor, preencha o utilizador e a palavra-passe.');
+                return;
+            }
+
+            try {
+                const { data: adminData, error: adminError } = await supabase
+                    .from('admins')
+                    .select('*')
+                    .eq('username', user)
+                    .eq('senha', pass);
+
+                if (!adminError && adminData && adminData.length > 0) {
+                    isAdminLogado = true;
+                    alunoLogadoAtual = null;
+                    localStorage.setItem('tamancao_admin', JSON.stringify(true));
+                    localStorage.removeItem('tamancao_aluno');
+
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('aluno-panel').style.display = 'none';
+                    document.getElementById('admin-panel').style.display = 'block';
+                    atualizarHeaderLogado('Admin');
+                    carregarAlunos();
+                    carregarAgendamentosAdmin();
+                    carregarPostsAdmin();
+                    return;
+                }
+
+                const { data: alunoData, error: alunoError } = await supabase
+                    .from('alunos')
+                    .select('*')
+                    .eq('username', user)
+                    .eq('senha', pass);
+
+                if (!alunoError && alunoData && alunoData.length > 0) {
+                    isAdminLogado = false;
+                    alunoLogadoAtual = alunoData[0];
+                    localStorage.setItem('tamancao_aluno', JSON.stringify(alunoLogadoAtual));
+                    localStorage.setItem('tamancao_admin', JSON.stringify(false));
+
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('admin-panel').style.display = 'none';
+                    document.getElementById('aluno-panel').style.display = 'block';
+                    document.getElementById('aluno-welcome-title').textContent = `Olá, ${alunoLogadoAtual.nome}`;
+                    atualizarHeaderLogado(alunoLogadoAtual.nome);
+                    carregarMeusAgendamentos(alunoLogadoAtual.nome, alunoLogadoAtual.username);
+                    return;
+                }
+
+                alert('Utilizador ou palavra-passe incorretos!');
+
+            } catch (err) {
+                alert('Falha na conexão com o servidor.');
+            }
+        };
+
+        function fazerLogout() {
+            alunoLogadoAtual = null;
+            isAdminLogado = false;
+            localStorage.removeItem('tamancao_aluno');
+            localStorage.removeItem('tamancao_admin');
+
+            document.getElementById('admin-user').value = '';
+            document.getElementById('admin-pass').value = '';
+            document.getElementById('admin-panel').style.display = 'none';
+            document.getElementById('aluno-panel').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+            restaurarHeaderLogin();
+            mudarSecao('admin');
+        }
+
+        async function carregarMeusAgendamentos(nomeAluno, usernameAluno) {
+            const tbody = document.getElementById('tabela-meus-agendamentos-body');
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">A carregar...</td></tr>`;
+
+            try {
+                let agendamentos = [];
+                if (nomeAluno) {
+                    const { data: resNome } = await supabase
+                        .from('agendamentos')
+                        .select('*')
+                        .ilike('nome', `%${nomeAluno.trim()}%`)
+                        .order('id', { ascending: false });
+                    if (resNome && resNome.length > 0) agendamentos = resNome;
+                }
+
+                if (agendamentos.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Ainda não tem pedidos registados.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                agendamentos.forEach(item => {
+                    const statusClass = `badge-status status-${item.status || 'Pendente'}`;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${item.assunto}</strong></td>
+                        <td>${item.data_pref}</td>
+                        <td><span class="${statusClass}">${item.status || 'Pendente'}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--danger);">Erro de ligação.</td></tr>`;
+            }
+        }
+
+        async function carregarAgendamentosAdmin() {
+            const tbody = document.getElementById('tabela-agendamentos-body');
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">A carregar...</td></tr>`;
+
+            try {
+                const { data: agendamentos, error } = await supabase
+                    .from('agendamentos')
+                    .select('*')
+                    .order('id', { ascending: false });
+
+                if (error || !agendamentos || agendamentos.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Nenhuma solicitação registada.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                agendamentos.forEach(item => {
+                    const statusClass = `badge-status status-${item.status || 'Pendente'}`;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${item.nome}</strong></td>
+                        <td>${item.turma || '-'}</td>
+                        <td>${item.assunto}</td>
+                        <td>${item.data_pref}</td>
+                        <td><span class="${statusClass}">${item.status || 'Pendente'}</span></td>
+                        <td style="text-align: right;">
+                            <select onchange="atualizarEstadoAgendamento('${item.id}', this.value)" style="padding: 4px; font-size: 0.7rem; width: auto; display: inline-block; margin-right: 4px;">
+                                <option value="" disabled selected>Estado...</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Aceite">Aceite</option>
+                                <option value="Concluído">Concluído</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                            <button class="btn-action btn-delete" onclick="excluirAgendamento('${item.id}')">Excluir</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">Erro de ligação.</td></tr>`;
+            }
+        }
+
+        async function atualizarEstadoAgendamento(id, novoEstado) {
+            const { error } = await supabase.from('agendamentos').update({ status: novoEstado }).eq('id', id);
+            if (error) {
+                alert('Erro ao atualizar estado.');
+            } else {
+                carregarAgendamentosAdmin();
+            }
+        }
+
+        async function excluirAgendamento(id) {
+            if (confirm('Deseja excluir este registo?')) {
+                const { error } = await supabase.from('agendamentos').delete().eq('id', id);
+                if (error) alert('Erro ao excluir.');
+                else carregarAgendamentosAdmin();
+            }
+        }
+
+        async function enviarAgendamento(e) {
+            e.preventDefault();
+
+            // BLOQUEIO: Não permitir enviar agendamento sem estar logado
+            if (!alunoLogadoAtual && !isAdminLogado) {
+                alert('Deve iniciar sessão na sua conta de aluno para poder solicitar um atendimento.');
+                mudarSecao('admin');
+                return;
+            }
+
+            const nome = document.getElementById('nome').value.trim();
+            const turma = document.getElementById('turma').value;
+            const assunto = document.getElementById('assunto').value;
+            const data_pref = document.getElementById('data-pref').value;
+
+            const dadosAgendamento = { 
+                nome, 
+                turma, 
+                assunto, 
+                data_pref, 
+                status: 'Pendente'
+            };
+
+            let { error } = await supabase.from('agendamentos').insert([dadosAgendamento]);
+
+            if (error) {
+                alert('Erro ao enviar solicitação: ' + error.message);
+            } else {
+                alert('Solicitação enviada com sucesso! A equipa entrará em contacto.');
+                document.getElementById('form-agendar').reset();
+                
+                if (alunoLogadoAtual) {
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('admin-panel').style.display = 'none';
+                    document.getElementById('aluno-panel').style.display = 'block';
+                    carregarMeusAgendamentos(alunoLogadoAtual.nome, alunoLogadoAtual.username);
+                    mudarSecao('admin');
+                } else {
+                    mudarSecao('mural');
+                }
+            }
+        }
+
+        async function carregarAlunos() {
+            const tbody = document.getElementById('tabela-alunos-body');
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">A carregar...</td></tr>`;
+
+            try {
+                const { data: alunos, error } = await supabase.from('alunos').select('*').order('nome', { ascending: true });
+                if (error || !alunos || alunos.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Nenhum aluno registado.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                alunos.forEach(aluno => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${aluno.nome}</strong></td>
+                        <td>${aluno.username}</td>
+                        <td style="text-align: right;">
+                            <button class="btn-action btn-edit" onclick="prepararEdicaoAluno('${aluno.id}', '${aluno.nome}', '${aluno.username}')">Editar</button>
+                            <button class="btn-action btn-delete" onclick="excluirAluno('${aluno.id}')">Excluir</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--danger);">Erro de ligação.</td></tr>`;
+            }
+        }
+
+        async function salvarAluno(e) {
+            e.preventDefault();
+            const id = document.getElementById('aluno-id').value;
+            const nome = document.getElementById('aluno-nome').value.trim();
+            const username = document.getElementById('aluno-user').value.trim();
+            const senha = document.getElementById('aluno-pass').value.trim();
+
+            const dadosAluno = { nome, username, senha };
+
+            if (id) {
+                const { error } = await supabase.from('alunos').update(dadosAluno).eq('id', id);
+                if (error) alert('Erro ao atualizar.');
+                else {
+                    alert('Aluno atualizado!');
+                    cancelarEdicaoAluno();
+                    carregarAlunos();
+                }
+            } else {
+                const { error } = await supabase.from('alunos').insert([dadosAluno]);
+                if (error) alert('Erro ao criar conta. O utilizador pode já existir.');
+                else {
+                    alert('Aluno registado!');
+                    document.getElementById('form-aluno').reset();
+                    carregarAlunos();
+                }
+            }
+        }
+
+        function prepararEdicaoAluno(id, nome, username) {
+            document.getElementById('aluno-id').value = id;
+            document.getElementById('aluno-nome').value = nome;
+            document.getElementById('aluno-user').value = username;
+            document.getElementById('aluno-pass').value = '';
+            document.getElementById('aluno-pass').placeholder = 'Deixe em branco para manter';
+            document.getElementById('aluno-pass').required = false;
+
+            document.getElementById('form-aluno-titulo').textContent = 'Editar Dados do Aluno';
+            document.getElementById('btn-salvar-aluno').textContent = 'Atualizar';
+            document.getElementById('btn-cancelar-edicao').style.display = 'inline-block';
+            window.scrollTo({ top: document.getElementById('form-aluno').offsetTop - 100, behavior: 'smooth' });
+        }
+
+        function cancelarEdicaoAluno() {
+            document.getElementById('form-aluno').reset();
+            document.getElementById('aluno-id').value = '';
+            document.getElementById('aluno-pass').placeholder = 'Palavra-passe';
+            document.getElementById('aluno-pass').required = true;
+            document.getElementById('form-aluno-titulo').textContent = 'Registar Novo Aluno';
+            document.getElementById('btn-salvar-aluno').textContent = 'Salvar Aluno';
+            document.getElementById('btn-cancelar-edicao').style.display = 'none';
+        }
+
+        async function excluirAluno(id) {
+            if (confirm('Deseja excluir este aluno?')) {
+                const { error } = await supabase.from('alunos').delete().eq('id', id);
+                if (error) alert('Erro ao excluir.');
+                else carregarAlunos();
+            }
+        }
+
+        async function carregarPostsAdmin() {
+            const tbody = document.getElementById('tabela-posts-body');
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">A carregar...</td></tr>`;
+
+            const { data: posts, error } = await supabase.from('posts').select('*').order('id', { ascending: false });
+            if (error || !posts || posts.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Nenhum aviso publicado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            posts.forEach(post => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${post.titulo}</strong></td>
+                    <td>${post.data}</td>
+                    <td style="text-align: right;">
+                        <button class="btn-action btn-edit" onclick="prepararEdicaoPost('${post.id}', '${post.titulo.replace(/'/g, "\\'")}', '${post.conteudo.replace(/'/g, "\\'")}', '${post.link || ''}')">Editar</button>
+                        <button class="btn-action btn-delete" onclick="excluirPost('${post.id}')">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function salvarPost(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-enviar-post');
+            btn.textContent = 'A processar...';
+            btn.disabled = true;
+
+            const id = document.getElementById('post-id').value;
+            const titulo = document.getElementById('titulo').value;
+            const conteudo = document.getElementById('conteudo').value;
+            const link = document.getElementById('link').value;
+            const imagemInput = document.getElementById('imagem');
+            const dataAtual = new Date().toLocaleDateString('pt-PT');
+
+            const executarSalvar = async (imagemBase64) => {
+                let dadosPost = { titulo, conteudo, link };
+                if (imagemBase64 !== undefined) dadosPost.imagem = imagemBase64;
+
+                if (id) {
+                    const { error } = await supabase.from('posts').update(dadosPost).eq('id', id);
+                    if (error) alert('Erro ao atualizar: ' + error.message);
+                    else {
+                        alert('Publicação atualizada!');
+                        cancelarEdicaoPost();
+                        carregarPostsAdmin();
+                    }
+                } else {
+                    dadosPost.data = dataAtual;
+                    const { error } = await supabase.from('posts').insert([dadosPost]);
+                    if (error) {
+                        alert('Erro ao criar publicação: ' + error.message);
+                    } else {
+                        alert('Publicada com sucesso!');
+                        document.getElementById('form-post').reset();
+                        carregarPostsAdmin();
+                    }
+                }
+                btn.textContent = 'Publicar Agora';
+                btn.disabled = false;
+            };
+
+            if (imagemInput.files && imagemInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(event) { executarSalvar(event.target.result); };
+                reader.readAsDataURL(imagemInput.files[0]);
+            } else {
+                executarSalvar(id ? undefined : null);
+            }
+        }
+
+        function prepararEdicaoPost(id, titulo, conteudo, link) {
+            document.getElementById('post-id').value = id;
+            document.getElementById('titulo').value = titulo;
+            document.getElementById('conteudo').value = conteudo;
+            document.getElementById('link').value = link;
+
+            document.getElementById('form-post-titulo').textContent = 'Editar Publicação';
+            document.getElementById('btn-enviar-post').textContent = 'Atualizar';
+            document.getElementById('btn-cancelar-post').style.display = 'inline-block';
+            window.scrollTo({ top: document.getElementById('form-post').offsetTop - 100, behavior: 'smooth' });
+        }
+
+        function cancelarEdicaoPost() {
+            document.getElementById('form-post').reset();
+            document.getElementById('post-id').value = '';
+            document.getElementById('form-post-titulo').textContent = 'Criar Nova Publicação';
+            document.getElementById('btn-enviar-post').textContent = 'Publicar Agora';
+            document.getElementById('btn-cancelar-post').style.display = 'none';
+        }
+
+        async function excluirPost(id) {
+            if (confirm('Deseja excluir esta publicação?')) {
+                const { error } = await supabase.from('posts').delete().eq('id', id);
+                if (error) alert('Erro ao excluir.');
+                else carregarPostsAdmin();
+            }
+        }
+
+        async function loadPosts() {
+            const container = document.getElementById('posts-container');
+            if (!container) return;
+
+            try {
+                const { data: posts, error } = await supabase.from('posts').select('*').order('id', { ascending: false });
+                container.innerHTML = '';
+
+                if (error || !posts || posts.length === 0) {
+                    container.innerHTML = `<div class="state-container"><h3>Nenhum aviso publicado</h3><p>Fique atento, novas orientações em breve.</p></div>`;
+                    return;
+                }
+
+                posts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'post-card';
+                    let htmlContent = `<h3>${post.titulo}</h3><div class="post-date">Publicado em: ${post.data}</div>`;
+                    if (post.imagem) htmlContent += `<img src="${post.imagem}" alt="Imagem" class="post-image">`;
+                    htmlContent += `<p>${post.conteudo}</p>`;
+                    if (post.link) htmlContent += `<a href="${post.link}" target="_blank" class="post-link">Aceder a Link Externo →</a>`;
+                    postElement.innerHTML = htmlContent;
+                    container.appendChild(postElement);
+                });
+            } catch (err) {
+                container.innerHTML = `<div class="state-container"><h3>Erro de ligação</h3><p>Não foi possível ligar ao servidor.</p></div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPosts();
+            if (isAdminLogado) {
+                atualizarHeaderLogado('Admin');
+            } else if (alunoLogadoAtual) {
+                atualizarHeaderLogado(alunoLogadoAtual.nome);
+            }
+        });
+    </script>
+</body>
+</html>
