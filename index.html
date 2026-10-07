@@ -1206,6 +1206,16 @@
             const assunto = document.getElementById('assunto').value;
             const data_pref = document.getElementById('data-pref').value;
 
+            // VALIDAÇÃO DE DATA: Bloquear datas passadas ou inválidas
+            const dataSelecionada = new Date(data_pref);
+            const dataAtual = new Date();
+            dataAtual.setHours(0, 0, 0, 0);
+
+            if (isNaN(dataSelecionada.getTime()) || dataSelecionada < dataAtual) {
+                alert('Por favor, selecione uma data válida que não pertença ao passado.');
+                return;
+            }
+
             const dadosAgendamento = { 
                 nome, 
                 turma, 
@@ -1221,6 +1231,9 @@
             } else {
                 alert('Solicitação enviada com sucesso! A equipa entrará em contacto.');
                 document.getElementById('form-agendar').reset();
+                
+                // Restaura a data mínima no input após o reset
+                document.getElementById('data-pref').min = new Date().toISOString().split('T')[0];
                 
                 if (alunoLogadoAtual) {
                     document.getElementById('login-section').style.display = 'none';
@@ -1455,6 +1468,14 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadPosts();
+
+            // Configura a data mínima do calendário para o dia de hoje
+            const hoje = new Date().toISOString().split('T')[0];
+            const inputData = document.getElementById('data-pref');
+            if (inputData) {
+                inputData.min = hoje;
+            }
+
             if (isAdminLogado) {
                 atualizarHeaderLogado('Admin');
             } else if (alunoLogadoAtual) {
